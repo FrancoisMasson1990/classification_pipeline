@@ -10,10 +10,11 @@ if __name__ == "__main__":
     url = 'https://raw.githubusercontent.com/Stradigi-AI/aidev_interview_test/master/data/iris.csv'
     df = dp.read_dataset(url=url)
     df = dp.clean_dataset(df)
-    # The data matrix X
     x = df.iloc[:,1:-1].copy()
-    # The labels
     y = (df.iloc[:,-1:]).copy()
     x = dp.normalization(x)
     cl.train(x, y)
+    cl.test()
+    cl.save_model()
+
 
