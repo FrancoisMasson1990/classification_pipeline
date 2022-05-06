@@ -17,9 +17,8 @@ def predict():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         json = request.json
-        # model inference
-        # return model inference
-        return json
+        response = cl.predict(json, model)
+        return response
     else:
         return 'Content-Type not supported!'
 

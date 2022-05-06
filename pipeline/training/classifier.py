@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Optional
+from typing import List, Dict
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KNeighborsClassifier
@@ -80,17 +80,38 @@ def train(x_train: pd.DataFrame,
 def test(x_test: pd.DataFrame,
          y_test: pd.DataFrame,
          model: GridSearchCV) -> None:
-    """Perform inference."""
+    """Perform testing."""
     print('Test set score: ' + str(model.score(x_test, y_test)))
 
 
-def save_model(model: GridSearchCV, name: str = "model.pkl") -> None:
+def predict(request: dict,
+            model: Dict) -> str:
+    """Perform inference."""
+    try:
+        df = pd.DataFrame([request])
+        classes = model['labels']
+        model = model['model']
+        z = model.predict_proba(df)
+        labels = np.argmax(z, axis=1)
+        score = z[0][labels][0]
+        label = [classes[i] for i in labels][0]
+        return f'{label} with {100*score} % of confidence\n'
+    except Exception as e:
+        return e
+
+
+def save_model(model: GridSearchCV,
+               labels: list,
+               name: str = "model.pkl") -> None:
     if not os.path.exists(name):
         folder = ('/').join(name.split('/')[:-1])
         os.makedirs(folder, exist_ok=True)
-    joblib.dump(model, name)
+    job = {}
+    job['model'] = model
+    job['labels'] = labels
+    joblib.dump(job, name)
 
 
-def load_model(name: str) -> Optional[GridSearchCV]:
+def load_model(name: str) -> Dict:
     model = joblib.load(name)
     return model

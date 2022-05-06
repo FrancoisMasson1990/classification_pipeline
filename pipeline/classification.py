@@ -2,6 +2,7 @@
 # *-* coding: utf-8*-*
 
 from pathlib import Path
+import numpy as np
 from processing import data_processing as dp
 from training import classifier as cl
 
@@ -15,6 +16,7 @@ if __name__ == "__main__":
     # Assign Features and labels
     x = df.iloc[:, 1:-1].copy()
     y = (df.iloc[:, -1:]).copy()
+    labels = np.unique(y.to_numpy()).tolist()
     # Custom preprocessing by normalization
     x = dp.normalization(x)
     y = cl.encoding(y)
@@ -27,4 +29,4 @@ if __name__ == "__main__":
     # Save model
     root = Path(__file__).parent.parent
     name = root / "model/model.pkl"
-    cl.save_model(model, str(name))
+    cl.save_model(model, labels, str(name))
