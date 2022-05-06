@@ -1,37 +1,47 @@
+#!/usr/bin/env python3.9
+# *-* coding: utf-8*-*
+
 import numpy as np
+import pandas as pd
+from typing import List, Dict
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
+import joblib
 
-def encoding(y):
-    # Encode the labels into unique integers
+
+def encoding(y: pd.DataFrame) -> np.ndarray:
+    """Encode the labels into unique integers."""
     encoder = LabelEncoder()
     y = encoder.fit_transform(np.ravel(y))
     return y
 
 
-def split_dataset(x, y):
-    # Split the data into test and train
+def split_dataset(x: pd.DataFrame, y: pd.DataFrame) -> List[pd.DataFrame]:
+    """Split the data into test and train."""
     x_train, x_test, y_train, y_test = \
         train_test_split(x,
                          y,
                          test_size=1/3,
                          random_state=0)
-    return x_train, x_test, y_train, y_test
+    return [x_train, x_test, y_train, y_test]
 
-def pipeline(x_train, y_train):
+
+def pipeline(x_train: pd.DataFrame, y_train: pd.DataFrame) -> Pipeline:
+    """Generate the pipeline."""
     pipe = Pipeline([
-    ('selector', VarianceThreshold()),
-    ('classifier', KNeighborsClassifier())
-    ])
+        ('selector', VarianceThreshold()),
+        ('classifier', KNeighborsClassifier())
+        ])
     pipe.fit(x_train, y_train)
     return pipe
 
 
-def get_parameters():
+def get_parameters() -> Dict:
+    """Define parameters for gridsearch."""
     parameters = {
         'selector__threshold': [0, 0.001, 0.01],
         'classifier__n_neighbors': [1, 3, 5, 7, 10],
@@ -40,36 +50,43 @@ def get_parameters():
     }
     return parameters
 
-def grid(pipe, parameters, x_train, y_train):
+
+def grid(pipe: Pipeline,
+         parameters: Dict,
+         x_train: pd.DataFrame,
+         y_train: pd.DataFrame) -> GridSearchCV:
+    """Apply Grid Search method."""
     grid = GridSearchCV(pipe,
                         parameters,
                         cv=2).fit(x_train, y_train)
     return grid
 
 
-def train(x, y):
-    y = encoding(y)
-    x_train, x_test, y_train, y_test = split_dataset(x, y)
+def train(x_train: pd.DataFrame,
+          y_train: pd.DataFrame) -> GridSearchCV:
+    """Perform training."""
     pipe = pipeline(x_train, y_train)
     parameters = get_parameters()
-    results = grid(pipe, parameters, x_train, y_train)
+    model = grid(pipe, parameters, x_train, y_train)
     # Access the best set of parameters
-    best_params = results.best_params_
-    best_pipe = results.best_estimator_
-    
+    best_params = model.best_params_
+    best_pipe = model.best_estimator_
+    print('Training set score: ' + str(model.score(x_train,
+                                                   y_train)))
+    return model
 
-    # print('Training set score: ' + str(pipe.score(X_train,y_train)))
-    # print('Test set score: ' + str(pipe.score(X_test,y_test)))
 
-    # print('Training set score: ' + str(grid.score(X_train, y_train)))
-    # print('Test set score: ' + str(grid.score(X_test, y_test)))
+def test(x_test: pd.DataFrame,
+         y_test: pd.DataFrame,
+         model: GridSearchCV) -> None:
+    """Perform inference."""
+    print('Test set score: ' + str(model.score(x_test, y_test)))
 
-    # # Access the best set of parameters
-    # best_params = grid.best_params_
-    # print(best_params)
-    # # Stores the optimum model in best_pipe
-    # best_pipe = grid.best_estimator_
-    # print(best_pipe)
-    # import pandas as pd
-    # result_df = pd.DataFrame.from_dict(grid.cv_results_, orient='columns')
-    # print(result_df.columns)
+
+def save_model(model: GridSearchCV, name: str = "model.pkl") -> None:
+    joblib.dump(model, name)
+
+
+def load_model(name: str):
+    model = joblib.dump(name)
+    return model
