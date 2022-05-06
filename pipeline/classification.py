@@ -2,8 +2,8 @@
 # *-* coding: utf-8*-*
 
 from pathlib import Path
-from pipeline.processing import data_processing as dp
-from pipeline.training import classifier as cl
+from processing import data_processing as dp
+from training import classifier as cl
 
 
 if __name__ == "__main__":
@@ -25,6 +25,6 @@ if __name__ == "__main__":
     # Perform inference
     cl.test(x_test, y_test, model)
     # Save model
-    root = Path(__file__).parent
+    root = Path(__file__).parent.parent
     name = root / "model/model.pkl"
     cl.save_model(model, str(name))

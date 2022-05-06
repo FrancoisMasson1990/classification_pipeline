@@ -3,7 +3,7 @@
 
 import numpy as np
 import pandas as pd
-from typing import List, Dict
+from typing import List, Dict, Optional
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.neighbors import KNeighborsClassifier
@@ -11,6 +11,7 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GridSearchCV
 import joblib
+import os
 
 
 def encoding(y: pd.DataFrame) -> np.ndarray:
@@ -84,9 +85,12 @@ def test(x_test: pd.DataFrame,
 
 
 def save_model(model: GridSearchCV, name: str = "model.pkl") -> None:
+    if not os.path.exists(name):
+        folder = ('/').join(name.split('/')[:-1])
+        os.makedirs(folder, exist_ok=True)
     joblib.dump(model, name)
 
 
-def load_model(name: str):
-    model = joblib.dump(name)
+def load_model(name: str) -> Optional[GridSearchCV]:
+    model = joblib.load(name)
     return model
